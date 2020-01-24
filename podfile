@@ -1,0 +1,5 @@
+use_frameworks!
+ 
+target 'MSALiOS' do
+  pod 'MSAL'
+end
