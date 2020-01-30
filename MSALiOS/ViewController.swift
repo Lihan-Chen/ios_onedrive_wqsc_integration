@@ -33,9 +33,8 @@ import MSAL
 class ViewController: UIViewController, UITextFieldDelegate, URLSessionDelegate {
     
     // Update the below to your client ID you received in the portal. The below is for running the demo only
-    // let kClientID = "66855f8a-60cd-445e-a9bb-8cd8eadbd3fa"
     let kClientID = "6e7a98a3-b668-475e-bfc3-3ae85dd619ef"
-    // let kClientSecret = "itwsFU2999:(uwdTNWGG8%|"    // 6e7a98a3-b668-475e-bfc3-3ae85dd619ef
+    // let kClientSecret = "itwsFU2999:(uwdTNWGG8%|"
     // Additional variables for Auth and Graph API
     let kGraphURI = "https://graph.microsoft.com/v1.0/me/"
     // Team group edbc7e15-44cf-4e1e-bf85-a34e9d794e5e
@@ -313,6 +312,41 @@ extension ViewController {
             let loadSamplesResult = downLoad(url: kUrlLoadSamples, fileName: kFileName)
             
             self.updateLogging(text: "\(loadSamplesResult)")
+        }
+        
+        func getLoadSamplesFileWithToken() {
+            
+            // Specify the Graph API endpoint
+            // TODO: kURLLoadSamples // kGraphURI
+            let url = URL(string: kUrlLoadSamples)
+            var request = URLRequest(url: url!)
+            
+            // Set the Authorization header for the request. We use Bearer tokens, so we specify Bearer + the token we got from the result
+            request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                
+                if let error = error {
+                    self.updateLogging(text: "Couldn't get graph result: \(error)")
+                    return
+                }
+                
+                guard let result = try? JSONSerialization.jsonObject(with: data!, options: []) else {
+                    
+                    self.updateLogging(text: "Couldn't deserialize result JSON")
+                    return
+                }
+                
+                self.updateLogging(text: "Result from Graph: \(result))")
+                
+                }.resume()
+            
+            // kFileEndPoint
+            if let kUrlLoadSamples = URL(string: kUrlLoadSamples) {
+                let loadSamplesResult = downLoad(url: kUrlLoadSamples, fileName: kFileName)
+                
+                self.updateLogging(text: "\(loadSamplesResult)")
+            }
         }
     }
 
