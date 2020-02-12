@@ -70,7 +70,7 @@ class ViewController: UIViewController, UITextFieldDelegate, URLSessionDelegate 
     // default to LoadSamples
 //    lazy var endPointUrl = "\(kUrl_Prefix)\(kGroupId_WQSC)/drive/root:/\(kLoadSamplesFileName)"
 //
-    var downloadUrl = ""
+    var downloadUrl: URL!
     
     // let kInBoxEndPoint = "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root/children/InBox"
     // Sample format for downloadUrl
@@ -237,8 +237,8 @@ extension ViewController {
             self.accessToken = result.accessToken
             self.updateLogging(text: "Access token is \(self.accessToken)")
             self.updateSignOutButton(enabled: true)
-            self.getContentWithToken()
-//            self.getDownloadStringWithToken()
+//            self.getContentWithToken()
+            self.getDownloadStringWithToken()
         }
     }
     
@@ -295,8 +295,9 @@ extension ViewController {
             self.accessToken = result.accessToken
             self.updateLogging(text: "Refreshed Access token is \(self.accessToken)")
             self.updateSignOutButton(enabled: true)
-            self.getContentWithToken()
-//            self.getDownloadStringWithToken()
+//            self.getContentWithToken()
+            self.getDownloadStringWithToken()
+//            self.downLoad(url: self.downloadUrl, fileName: fileName)
         }
     }
     
@@ -328,7 +329,7 @@ extension ViewController {
                 return
             }
 
-             self.updateLogging(text: "\(result))")
+             self.updateLogging(text: "\(result)")
             
             }.resume()
         }
@@ -357,13 +358,14 @@ extension ViewController {
                 return
             }
             
-            guard let downloadUrl = result["@microsoft.graph.downloadUrl"] as? String else {
+            guard let downloadUrlString = result["@microsoft.graph.downloadUrl"] as? String else {
                 
                 self.updateLogging(text: "Couldn't get download url")
                     return
                 }
             
-            self.updateLogging(text: "\(downloadUrl))")
+            self.downloadUrl = URL(string: downloadUrlString)!
+            self.updateLogging(text: "\(downloadUrlString)")
             
             }.resume()
     }
