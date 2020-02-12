@@ -32,31 +32,57 @@ import MSAL
 
 class ViewController: UIViewController, UITextFieldDelegate, URLSessionDelegate {
     
+    // Mark - Application Constants
     // Update the below to your client ID you received in the portal. The below is for running the demo only
     let kClientID = "6e7a98a3-b668-475e-bfc3-3ae85dd619ef"
+    
+    // kClientSecret is not used in mobile apps
     // let kClientSecret = "itwsFU2999:(uwdTNWGG8%|"
+    
     // Additional variables for Auth and Graph API
     let kGraphURI = "https://graph.microsoft.com/v1.0/me/"
-    // Team group edbc7e15-44cf-4e1e-bf85-a34e9d794e5e
-    let kGroupID = "edbc7e15-44cf-4e1e-bf85-a34e9d794e5e"
-    // to get a list of objects in the team drive
-    //groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root/children
+    
+    // Team group for WQSC edbc7e15-44cf-4e1e-bf85-a34e9d794e5e
+    let kGroupName_WQSC = "WQSC"
+    let kGroupId_WQSC = "edbc7e15-44cf-4e1e-bf85-a34e9d794e5e"
+    
+    // groups.append [kGroupName_WQSC] = kGroupId_WQSC
+    
+    // WQSC Team Drive ID
+    let kTeamDriveId_WQSC  = "drives/01BCC7HDF6Y2GOVW7725BZO354PWSELRRZ/root/children"
 
+    // Dictionary for groups to be used in the future
+    var groups = ["WQSC": "edbc7e15-44cf-4e1e-bf85-a34e9d794e5e"]
+    
     // Predefined file and url
-    let kFileName = "LoadSamples.csv"
-    let kFileEndPoint = "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv"
+    
+//    let kUrl_Prefix = "https://graph.microsoft.com/v1.0/groups/"
+//    let kUrl_Predicate = "?select=name,id,@microsoft.graph.downloadUrl"
+
     // url for LoadSamples.csv
-    // "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv")
-    //let kUrlLoadSamples = "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv"
-    let kUrlLoadSamples = "https://mwdsocal.sharepoint.com/teams/WQSC/_layouts/15/download.aspx?UniqueId=7de29098-69b5-413a-9bef-0db06ea8254c&Translate=false"
-    // TeamDrive ID
-    let kTeamDrive  = "drives/01BCC7HDF6Y2GOVW7725BZO354PWSELRRZ/root/children"
+    // "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv"
+//    let kLoadSamplesFileName = "LoadSamples.csv"
+    
+    // url to get a list of objects in the team drive InBox
+    // https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root/children/inbox
+    // let kInBoxUrl_WQSC = "\(kUrlString_Prefix)\(kGroupId_WQSC)/drive/root/children/inbox"
+    
+    // default to LoadSamples
+//    lazy var endPointUrl = "\(kUrl_Prefix)\(kGroupId_WQSC)/drive/root:/\(kLoadSamplesFileName)"
+//
+    var downloadUrl = ""
+    
+    // let kInBoxEndPoint = "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root/children/InBox"
+    // Sample format for downloadUrl
+    // let kUrlLoadSamples = "https://mwdsocal.sharepoint.com/teams/WQSC/_layouts/15/download.aspx?UniqueId=7de29098-69b5-413a-9bef-0db06ea8254c&Translate=false"
+
     
     let kScopes: [String] = ["https://graph.microsoft.com/user.read",
                              "https://graph.microsoft.com/Mail.ReadWrite",
                              "https://graph.microsoft.com/Mail.Send",
                              "https://graph.microsoft.com/Files.ReadWrite",
                              "https://graph.microsoft.com/User.ReadBasic.All"]
+    
     let kAuthority = "https://login.microsoftonline.com/common"
     
     var accessToken = String()
@@ -90,7 +116,6 @@ class ViewController: UIViewController, UITextFieldDelegate, URLSessionDelegate 
         self.updateSignOutButton(enabled: !self.accessToken.isEmpty)
     }
 }
-
 
 // MARK: Initialization
 
@@ -127,6 +152,11 @@ extension ViewController {
         self.webViewParamaters = MSALWebviewParameters(parentViewController: self)
     }
     
+//    func getEndpointUrl(groupName group:String, fileName file:String) -> String {
+//        let groupId = groups[group]
+//        return "\(kUrl_Prefix)\(String(describing: groupId))/drive/root:/\(file)\(kUrl_Predicate)"
+//    }
+    
     func downLoad(url downloadUrl: URL, fileName downloadFile: String) -> String {
         let task = URLSession.shared.downloadTask(with: downloadUrl) { (urlresponse, response, error) in
                guard let originalUrl = urlresponse else {return}
@@ -154,20 +184,13 @@ extension ViewController {
            
            task.resume()
            
-           return("Success!")
+           return("\(downloadFile) is successfully loaded!")
        }
-    
-//     get the @microsoft.graph.downloadUrl from https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv
-//    func getDownload(downloadUrl url: URL) -> URL {
-//        return URL( "https://mwdsocal.sharepoint.com/teams/WQSC/_layouts/15/download.aspx?UniqueId=7de29098-69b5-413a-9bef-0db06ea8254c&Translate=false")
-//
-//    }
     
     func initWebViewParams() {
         self.webViewParamaters = MSALWebviewParameters(parentViewController: self)
     }
 }
-
 
 // MARK: Acquiring and using token
 
@@ -215,6 +238,7 @@ extension ViewController {
             self.updateLogging(text: "Access token is \(self.accessToken)")
             self.updateSignOutButton(enabled: true)
             self.getContentWithToken()
+//            self.getDownloadStringWithToken()
         }
     }
     
@@ -272,6 +296,7 @@ extension ViewController {
             self.updateLogging(text: "Refreshed Access token is \(self.accessToken)")
             self.updateSignOutButton(enabled: true)
             self.getContentWithToken()
+//            self.getDownloadStringWithToken()
         }
     }
     
@@ -282,9 +307,9 @@ extension ViewController {
     
     func getContentWithToken() {
         
-        // Specify the Graph API endpoint
-        // TODO: kURLLoadSamples // kGraphURI
-        let url = URL(string: kGraphURI)
+        // Specify the Graph API endpoint  // kGraphURI
+
+        let url = URL(string: "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv?select=@microsoft.graph.downloadUrl")
         var request = URLRequest(url: url!)
         
         // Set the Authorization header for the request. We use Bearer tokens, so we specify Bearer + the token we got from the result
@@ -302,59 +327,70 @@ extension ViewController {
                 self.updateLogging(text: "Couldn't deserialize result JSON")
                 return
             }
-            
-            self.updateLogging(text: "Result from Graph: \(result))")
+
+             self.updateLogging(text: "\(result))")
             
             }.resume()
-        
-        // kFileEndPoint
-        if let kUrlLoadSamples = URL(string: kUrlLoadSamples) {
-            let loadSamplesResult = downLoad(url: kUrlLoadSamples, fileName: kFileName)
-            
-            self.updateLogging(text: "\(loadSamplesResult)")
         }
+    
+    func getDownloadStringWithToken() {
+    
+        // Specify the file endpoint with predicate
+//        let downloadUrlRequest = UrlRequest(fileName: fileName)
+//        let url = downloadUrlRequest.resourceUrl
+        let url = URL(string: "https://graph.microsoft.com/v1.0/groups/edbc7e15-44cf-4e1e-bf85-a34e9d794e5e/drive/root:/LoadSamples.csv?select=@microsoft.graph.downloadUrl")
+        var request = URLRequest(url: url!)
         
-        func getLoadSamplesFileWithToken() {
+        // Set the Authorization header for the request. We use Bearer tokens, so we specify Bearer + the token we got from the result
+        request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
             
-            // Specify the Graph API endpoint
-            // TODO: kURLLoadSamples // kGraphURI
-            let url = URL(string: kUrlLoadSamples)
-            var request = URLRequest(url: url!)
-            
-            // Set the Authorization header for the request. We use Bearer tokens, so we specify Bearer + the token we got from the result
-            request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
-            
-            URLSession.shared.dataTask(with: request) { data, response, error in
-                
-                if let error = error {
-                    self.updateLogging(text: "Couldn't get graph result: \(error)")
-                    return
-                }
-                
-                guard let result = try? JSONSerialization.jsonObject(with: data!, options: []) else {
-                    
-                    self.updateLogging(text: "Couldn't deserialize result JSON")
-                    return
-                }
-                
-                self.updateLogging(text: "Result from Graph: \(result))")
-                
-                }.resume()
-            
-            // kFileEndPoint
-            if let kUrlLoadSamples = URL(string: kUrlLoadSamples) {
-                let loadSamplesResult = downLoad(url: kUrlLoadSamples, fileName: kFileName)
-                
-                self.updateLogging(text: "\(loadSamplesResult)")
+            if let error = error {
+                self.updateLogging(text: "Couldn't get graph result: \(error)")
+                return
             }
-        }
+            
+            guard let result = try? JSONSerialization.jsonObject(with: data!, options: []) as? [String:Any] else {
+                
+                self.updateLogging(text: "Couldn't deserialize result JSON")
+                return
+            }
+            
+            guard let downloadUrl = result["@microsoft.graph.downloadUrl"] as? String else {
+                
+                self.updateLogging(text: "Couldn't get download url")
+                    return
+                }
+            
+            self.updateLogging(text: "\(downloadUrl))")
+            
+            }.resume()
     }
-
+        
+    func getdownloadUrlWithToken(fileName:String) -> String {
+        var urlString:String = ""
+        let endPoint = UrlRequest(fileName: fileName)
+        let url = endPoint.resourceUrl
+        var request = URLRequest(url: url)
+        
+        
+        // Set the Authorization header for the request. We use Bearer tokens, so we specify Bearer + the token we got from the result
+        request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
+        
+        endPoint.getDownloadUrl{result in
+                switch result {
+                    case .failure(let error):
+                        print(error)
+                    case .success(let fileInfo):
+                        urlString = fileInfo.downloadUrl
+                }
+            }
+        return urlString
+        }
 }
 
-
 // MARK: Get account and removing cache
-
 extension ViewController {
     func currentAccount() -> MSALAccount? {
         
@@ -408,7 +444,6 @@ extension ViewController {
         }
     }
 }
-
 
 // MARK: UI Helpers
 extension ViewController {
